@@ -53,4 +53,9 @@ public class Users {
 
     @Builder.Default
     private Set<Roles> roles = new HashSet<>();
+
+    // Constructor chỉ với userId
+    public Users(Long userId) {
+        this.userId = userId;
+    }
 }

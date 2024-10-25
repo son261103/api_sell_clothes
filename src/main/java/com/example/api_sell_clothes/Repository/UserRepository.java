@@ -12,7 +12,12 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     // Tìm người dùng theo tên đăng nhập
     Optional<Users> findByUsername(String username);
 
-    // Tìm người dùng theo email (nếu cần)
+    // Tìm người dùng theo email
     Optional<Users> findByEmail(String email);
 
+    // Kiểm tra sự tồn tại của tên người dùng
+    boolean existsByUsername(String username);
+
+    // Kiểm tra sự tồn tại của email
+    boolean existsByEmail(String email);
 }
