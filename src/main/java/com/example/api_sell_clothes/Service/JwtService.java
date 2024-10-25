@@ -7,15 +7,15 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +41,16 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
+    @SuppressWarnings("unchecked")
+    public List<String> extractRoles(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return (List<String>) claims.getOrDefault("roles", new ArrayList<>());
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
     public String generateToken(Users user) {
         return generateToken(new HashMap<>(), user);
     }
@@ -54,10 +64,20 @@ public class JwtService {
     }
 
     private String buildToken(Map<String, Object> extraClaims, Users user, long expiration) {
+        // Add roles to claims
+        List<String> roles = user.getRoles().stream()
+                .map(role -> "ROLE_" + role.getRoleName())
+                .collect(Collectors.toList());
+        extraClaims.put("roles", roles);
+
+        // Add user details to claims
+        extraClaims.put("userId", user.getUserId());
+        extraClaims.put("email", user.getEmail());
+        extraClaims.put("fullName", user.getFullName());
+
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(user.getUsername())
-                .claim("userId", user.getUserId())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -68,13 +88,35 @@ public class JwtService {
         try {
             final String username = extractUsername(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-        } catch (JwtException e) {
+
+            // Verify username matches
+            if (!username.equals(userDetails.getUsername())) {
+                return false;
+            }
+
+            // Verify token is not expired
+            if (isTokenExpired(token)) {
+                return false;
+            }
+
+            // Verify roles match
+            List<String> tokenRoles = extractRoles(token);
+            List<String> userRoles = userDetails.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList());
+
+            return new HashSet<>(tokenRoles).equals(new HashSet<>(userRoles));
+
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
     public void invalidateToken(String token) {
+        // In a production environment, you might want to:
+        // 1. Add the token to a blacklist
+        // 2. Store it in Redis/database with expiration
+        // 3. Implement token revocation
         System.out.println("Token đã bị vô hiệu hóa / Token invalidated: " + token);
     }
 
@@ -109,6 +151,30 @@ public class JwtService {
     private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public Long extractUserId(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return claims.get("userId", Long.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Map<String, Object> extractAllUserDetails(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            Map<String, Object> userDetails = new HashMap<>();
+            userDetails.put("userId", claims.get("userId"));
+            userDetails.put("username", claims.getSubject());
+            userDetails.put("email", claims.get("email"));
+            userDetails.put("fullName", claims.get("fullName"));
+            userDetails.put("roles", claims.get("roles"));
+            return userDetails;
+        } catch (Exception e) {
+            return new HashMap<>();
+        }
     }
 
     public long getExpirationTime() {

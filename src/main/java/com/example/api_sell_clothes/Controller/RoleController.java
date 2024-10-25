@@ -124,11 +124,11 @@ public class RoleController {
         }
     }
 
-    @PutMapping("/{roleId}/permissions")
-    public ResponseEntity<Void> updateRolePermissions(@PathVariable Long roleId, @RequestBody List<Long> permissionIds) {
-        roleService.updateRolePermissions(roleId, permissionIds);
-        return ResponseEntity.ok().build();
-    }
+//    @PutMapping("/{roleId}/permissions")
+//    public ResponseEntity<Void> updateRolePermissions(@PathVariable Long roleId, @RequestBody List<Long> permissionIds) {
+//        roleService.updateRolePermissions(roleId, permissionIds);
+//        return ResponseEntity.ok().build();
+//    }
 
     @DeleteMapping("/{roleId}/permissions/{permissionId}")
     public ResponseEntity<Void> removePermissionFromRole(@PathVariable Long roleId, @PathVariable Long permissionId) {
@@ -140,9 +140,9 @@ public class RoleController {
         }
     }
 
-    @PutMapping("/{roleId}/permissions/{permissionId}")
-    public ResponseEntity<Void> updatePermissionInRole(@PathVariable Long roleId, @PathVariable Long permissionId, @RequestBody PermissionsDTO updatedPermission) {
-        roleService.updatePermissionInRole(roleId, permissionId, updatedPermission);
-        return ResponseEntity.ok().build();
-    }
+//    @PutMapping("/{roleId}/permissions/{permissionId}")
+//    public ResponseEntity<Void> updatePermissionInRole(@PathVariable Long roleId, @PathVariable Long permissionId, @RequestBody PermissionsDTO updatedPermission) {
+//        roleService.updatePermissionInRole(roleId, permissionId, updatedPermission);
+//        return ResponseEntity.ok().build();
+//    }
 }
