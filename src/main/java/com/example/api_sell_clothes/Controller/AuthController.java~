@@ -3,6 +3,7 @@ package com.example.api_sell_clothes.Controller;
 import com.example.api_sell_clothes.DTO.Auth.*;
 import com.example.api_sell_clothes.Exception.ForbiddenException;
 import com.example.api_sell_clothes.Service.AuthService;
+import com.example.api_sell_clothes.Utils.AuthValidationUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -131,10 +132,10 @@ public class AuthController {
     @PutMapping("/update-roles/{username}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> updateUserRoles(
-            @PathVariable String username,
+            @PathVariable Long userId,
             @RequestBody Set<String> roleNames) {
         try {
-            authService.updateUserRoles(username, roleNames);
+            authService.updateUserRoles(userId, roleNames);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             throw new ForbiddenException("Role update failed: " + e.getMessage() + " / Cập nhật vai trò thất bại: " + e.getMessage());

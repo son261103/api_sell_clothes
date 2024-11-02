@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/admin/roles")
@@ -40,6 +41,12 @@ public class RoleController {
     public ResponseEntity<RolesDTO> getRoleByName(@PathVariable String name) {
         RolesDTO role = roleService.getRoleByName(name);
         return ResponseEntity.ok(role);
+    }
+
+    @GetMapping("/{roleId}/permissions")
+    public ResponseEntity<Set<PermissionsDTO>> getRolePermissions(@PathVariable Long roleId) {
+        Set<PermissionsDTO> permissions = roleService.getRolePermissions(roleId);
+        return ResponseEntity.ok(permissions);
     }
 
     @PostMapping
@@ -81,6 +88,7 @@ public class RoleController {
     }
 
     @PostMapping("/addAdminRole/{userId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> addAdminRoleToUser(@PathVariable Long userId) {
         roleService.addAdminRole(new Users(userId));
         return ResponseEntity.ok().build();
@@ -94,27 +102,18 @@ public class RoleController {
     }
 
     @PostMapping("/addRoles/{userId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> addMultipleRolesToUser(@PathVariable Long userId, @RequestBody List<String> roleNames) {
-        Users user = new Users(userId);
-        for (String roleName : roleNames) {
-            switch (roleName.toUpperCase()) {
-                case "USER":
-                    roleService.addDefaultRole(user);
-                    break;
-                case "ADMIN":
-                    roleService.addAdminRole(user);
-                    break;
-                case "SUPER_ADMIN":
-                    roleService.addSuperAdminRole(user);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Không tìm thấy vai trò với tên: " + roleName);
-            }
+        try {
+            roleService.addMultipleRolesToUser(userId, roleNames);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Lỗi khi thêm vai trò: " + e.getMessage());
         }
-        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{roleId}/permissions/{permissionId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> addPermissionToRole(@PathVariable Long roleId, @PathVariable Long permissionId) {
         try {
             roleService.addPermissionToRole(roleId, permissionId);
@@ -124,13 +123,15 @@ public class RoleController {
         }
     }
 
-//    @PutMapping("/{roleId}/permissions")
-//    public ResponseEntity<Void> updateRolePermissions(@PathVariable Long roleId, @RequestBody List<Long> permissionIds) {
-//        roleService.updateRolePermissions(roleId, permissionIds);
-//        return ResponseEntity.ok().build();
-//    }
+    @PutMapping("/{roleId}/permissions")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> updateRolePermissions(@PathVariable Long roleId, @RequestBody List<Long> permissionIds) {
+        roleService.updateRolePermissions(roleId, permissionIds);
+        return ResponseEntity.ok().build();
+    }
 
     @DeleteMapping("/{roleId}/permissions/{permissionId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> removePermissionFromRole(@PathVariable Long roleId, @PathVariable Long permissionId) {
         try {
             roleService.removePermissionFromRole(roleId, permissionId);
@@ -140,9 +141,10 @@ public class RoleController {
         }
     }
 
-//    @PutMapping("/{roleId}/permissions/{permissionId}")
-//    public ResponseEntity<Void> updatePermissionInRole(@PathVariable Long roleId, @PathVariable Long permissionId, @RequestBody PermissionsDTO updatedPermission) {
-//        roleService.updatePermissionInRole(roleId, permissionId, updatedPermission);
-//        return ResponseEntity.ok().build();
-//    }
+    @PutMapping("/{roleId}/permissions/{permissionId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> updatePermissionInRole(@PathVariable Long roleId, @PathVariable Long permissionId, @RequestBody PermissionsDTO updatedPermission) {
+        roleService.updatePermissionInRole(roleId, permissionId, updatedPermission);
+        return ResponseEntity.ok().build();
+    }
 }

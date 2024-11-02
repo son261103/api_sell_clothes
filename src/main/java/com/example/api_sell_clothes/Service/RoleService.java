@@ -10,6 +10,7 @@ import com.example.api_sell_clothes.Mapper.PermissionMapper;
 import com.example.api_sell_clothes.Mapper.RoleMapper;
 import com.example.api_sell_clothes.Repository.PermissionRepository;
 import com.example.api_sell_clothes.Repository.RoleRepository;
+import com.example.api_sell_clothes.Repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +29,7 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final UserRepository userRepository;
     private final RoleMapper roleMapper;
     private final PermissionMapper permissionMapper;
 
@@ -52,6 +54,15 @@ public class RoleService {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public Set<PermissionsDTO> getRolePermissions(Long roleId) {
+        Roles role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò / Role not found"));
+        return role.getPermissions().stream()
+                .map(permissionMapper::toDto)
+                .collect(Collectors.toSet());
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Transactional
     public RolesDTO createRole(RolesDTO roleDTO) {
         if (roleRepository.existsByRoleName(roleDTO.getRoleName())) {
@@ -60,7 +71,6 @@ public class RoleService {
 
         Roles role = roleMapper.toEntity(roleDTO);
 
-        // Handle permissions if they exist in the DTO
         if (roleDTO.getPermissions() != null && !roleDTO.getPermissions().isEmpty()) {
             Set<Permissions> permissions = roleDTO.getPermissions().stream()
                     .map(permName -> permissionRepository.findByPermissionName(permName)
@@ -92,7 +102,6 @@ public class RoleService {
                     .map(permName -> permissionRepository.findByPermissionName(permName)
                             .orElseThrow(() -> new ResourceNotFoundException("Permission not found: " + permName)))
                     .collect(Collectors.toSet());
-
             existingRole.setPermissions(newPermissions);
         }
 
@@ -113,39 +122,35 @@ public class RoleService {
     public void addDefaultRole(Users user) {
         Roles defaultRole = roleRepository.findByRoleName("USER")
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò mặc định / Default role not found"));
-        if (user.getRoles() == null) {
-            user.setRoles(new HashSet<>());
-        }
-        user.getRoles().add(defaultRole);
+        addRoleToUser(user, defaultRole);
     }
 
     @Transactional
     public void addAdminRole(Users user) {
         Roles adminRole = roleRepository.findByRoleName("ADMIN")
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò Admin / Admin role not found"));
-        if (user.getRoles() == null) {
-            user.setRoles(new HashSet<>());
-        }
-        user.getRoles().add(adminRole);
+        addRoleToUser(user, adminRole);
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Transactional
     public void addSuperAdminRole(Users user) {
         Roles superAdminRole = roleRepository.findByRoleName("SUPER_ADMIN")
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò Super Admin / Super Admin role not found"));
-        if (user.getRoles() == null) {
-            user.setRoles(new HashSet<>());
+        addRoleToUser(user, superAdminRole);
+    }
+
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Transactional
+    public void addMultipleRolesToUser(Long userId, List<String> roleNames) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng / User not found"));
+
+        for (String roleName : roleNames) {
+            Roles role = roleRepository.findByRoleName(roleName.toUpperCase())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò: " + roleName));
+            addRoleToUser(user, role);
         }
-        user.getRoles().add(superAdminRole);
-    }
-
-    public boolean hasSuperAdminRole(Users user) {
-        return user.getRoles() != null && user.getRoles().stream()
-                .anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleName()));
-    }
-
-    public Optional<Roles> findByRoleName(String roleName) {
-        return roleRepository.findByRoleName(roleName);
     }
 
     @PreAuthorize("hasRole('SUPER_ADMIN')")
@@ -160,12 +165,28 @@ public class RoleService {
         if (role.getPermissions() == null) {
             role.setPermissions(new HashSet<>());
         }
+        // Tiếp tục phần RoleService.java
 
         if (role.getPermissions().contains(permission)) {
             throw new IllegalArgumentException("Quyền đã tồn tại trong vai trò này");
         }
 
         role.getPermissions().add(permission);
+        roleRepository.save(role);
+    }
+
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Transactional
+    public void updateRolePermissions(Long roleId, List<Long> permissionIds) {
+        Roles role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò / Role not found"));
+
+        Set<Permissions> newPermissions = permissionIds.stream()
+                .map(id -> permissionRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quyền với id: " + id)))
+                .collect(Collectors.toSet());
+
+        role.setPermissions(newPermissions);
         roleRepository.save(role);
     }
 
@@ -186,11 +207,51 @@ public class RoleService {
         roleRepository.save(role);
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Transactional
+    public void updatePermissionInRole(Long roleId, Long permissionId, PermissionsDTO updatedPermission) {
+        Roles role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò / Role not found"));
+
+        Permissions existingPermission = permissionRepository.findById(permissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy quyền / Permission not found"));
+
+        if (!role.getPermissions().contains(existingPermission)) {
+            throw new IllegalArgumentException("Quyền không tồn tại trong vai trò này");
+        }
+
+        // Cập nhật thông tin quyền
+        existingPermission.setPermissionName(updatedPermission.getPermissionName());
+        existingPermission.setPermissionDescription(updatedPermission.getPermissionDescription());
+
+        permissionRepository.save(existingPermission);
+    }
+
+    public boolean hasSuperAdminRole(Users user) {
+        return user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleName()));
+    }
+
+    public Optional<Roles> findByRoleName(String roleName) {
+        return roleRepository.findByRoleName(roleName);
+    }
+
+    private void addRoleToUser(Users user, Roles role) {
+        if (user.getRoles() == null) {
+            user.setRoles(new HashSet<>());
+        }
+        if (!user.getRoles().contains(role)) {
+            user.getRoles().add(role);
+            userRepository.save(user);
+        }
+    }
+
     @PostConstruct
     public void initRoles() {
-        addRoleIfNotExists("USER", "Basic user role");
-        addRoleIfNotExists("ADMIN", "Administrator role with higher privileges");
-        addRoleIfNotExists("SUPER_ADMIN", "Super administrator with all privileges");
+        // Khởi tạo vai trò mặc định
+        addRoleIfNotExists("USER", "Basic user role with standard permissions");
+        addRoleIfNotExists("ADMIN", "Administrator role with elevated privileges");
+        addRoleIfNotExists("SUPER_ADMIN", "Super administrator with full system access");
     }
 
     private void addRoleIfNotExists(String roleName, String roleDescription) {
@@ -198,7 +259,14 @@ public class RoleService {
             Roles role = new Roles();
             role.setRoleName(roleName);
             role.setRoleDescription(roleDescription);
+            role.setPermissions(new HashSet<>());
             roleRepository.save(role);
         }
     }
+
+    public boolean hasAdminRole(Users user) {
+        return user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equals(role.getRoleName()));
+    }
+
 }
