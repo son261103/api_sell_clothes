@@ -93,10 +93,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/public/**",
-                                "/api/v1/auth/**",
+                                "/api/v1/auth/**", // Đảm bảo rằng endpoint này được cho phép
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login"
                         ).permitAll()
 
                         // Admin endpoints

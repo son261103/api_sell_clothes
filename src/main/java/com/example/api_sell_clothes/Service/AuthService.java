@@ -10,6 +10,7 @@ import com.example.api_sell_clothes.Repository.UserRepository;
 import com.example.api_sell_clothes.Utils.AuthValidationUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
@@ -63,23 +65,27 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        AuthValidationUtils.validateRegisterRequest(request);
-        validateUniqueUser(request.getUsername(), request.getEmail());
+        try {
+            AuthValidationUtils.validateRegisterRequest(request);
+            validateUniqueUser(request.getUsername(), request.getEmail());
 
-        Users user = buildUserFromBasicRequest(
-                request.getUsername(),
-                request.getPassword(),
-                request.getEmail(),
-                request.getFullName(),
-                request.getPhone()
-        );
-        roleService.addDefaultRole(user);
-        Users savedUser = userRepository.save(user);
+            Users user = buildUserFromBasicRequest(
+                    request.getUsername(),
+                    request.getPassword(),
+                    request.getEmail(),
+                    request.getFullName(),
+                    request.getPhone()
+            );
+            roleService.addDefaultRole(user);
+            Users savedUser = userRepository.save(user);
 
-        String token = jwtService.generateToken(savedUser);
-        String refreshToken = jwtService.generateRefreshToken(savedUser);
+            String token = jwtService.generateToken(savedUser);
+            String refreshToken = jwtService.generateRefreshToken(savedUser);
 
-        return buildAuthResponse(savedUser, token, refreshToken);
+            return buildAuthResponse(savedUser, token, refreshToken);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     @PreAuthorize("hasRole('SUPER_ADMIN')")

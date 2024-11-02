@@ -30,7 +30,7 @@ public class JwtService {
     @Value("${jwt.refresh-token.expiration}")
     private long refreshExpiration;
 
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

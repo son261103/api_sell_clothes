@@ -20,7 +20,7 @@ public class AuthValidationUtils {
         if (username.length() < MIN_USERNAME_LENGTH) {
             throw new IllegalArgumentException("Tên đăng nhập phải có ít nhất " + MIN_USERNAME_LENGTH + " ký tự");
         }
-//        if (!username.matches("^[a-zA-Z0-9._-]{3,}$")) {
+//        if (!username.matches("^[a-zA-Z0-9._-]{3,}$ ")) {
 //            throw new IllegalArgumentException("Tên đăng nhập chỉ được chứa chữ cái, số và các ký tự ._-");
 //        }
     }

@@ -14,12 +14,6 @@ jwt.expiration=3600000
 jwt.refresh-token.expiration=86400000
 jwt.header=Authorization
 jwt.token-prefix=Bearer
-# Logging
+# Security logging
 logging.level.org.springframework.security=DEBUG
-logging.level.com.example.api_sell_clothes=DEBUG
-logging.level.org.springframework.web=DEBUG
-
-# Server error handling
-server.error.include-message=always
-server.error.include-binding-errors=always
-server.error.include-stacktrace=never
+logging.level.com.example.api_sell_clothes.Security=DEBUG

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -40,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/register-admin")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public ResponseEntity<AuthResponse> registerAdmin(@Valid @RequestBody RegisterAdminRequest request) {
         try {
             AuthResponse response = authService.registerAdmin(request);
@@ -51,7 +51,7 @@ public class AuthController {
     }
 
     @PostMapping("/register-super-admin")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+//    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<AuthResponse> registerSuperAdmin(@Valid @RequestBody RegisterSuperAdminRequest request) {
         try {
             AuthResponse response = authService.registerSuperAdmin(request);
@@ -182,4 +182,5 @@ public class AuthController {
             throw new ForbiddenException("Logout failed: " + e.getMessage() + " / Đăng xuất thất bại: " + e.getMessage());
         }
     }
+
 }

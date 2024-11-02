@@ -118,6 +118,7 @@ public class RoleService {
         roleRepository.deleteById(id);
     }
 
+    @PreAuthorize("permitAll()")
     @Transactional
     public void addDefaultRole(Users user) {
         Roles defaultRole = roleRepository.findByRoleName("USER")
@@ -126,6 +127,7 @@ public class RoleService {
     }
 
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public void addAdminRole(Users user) {
         Roles adminRole = roleRepository.findByRoleName("ADMIN")
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò Admin / Admin role not found"));
