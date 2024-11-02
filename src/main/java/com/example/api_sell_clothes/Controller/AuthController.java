@@ -104,59 +104,59 @@ public class AuthController {
         }
     }
 
-    @DeleteMapping("/delete-admin/{username}")
+    @DeleteMapping("/delete-admin/{userId}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<Void> deleteAdmin(@PathVariable String username) {
+    public ResponseEntity<Void> deleteAdmin(@PathVariable Long userId) {
         try {
-            authService.deleteAdmin(username);
+            authService.deleteAdmin(userId);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             throw new ForbiddenException("Admin deletion failed: " + e.getMessage() + " / Xóa admin thất bại: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("/delete-super-admin/{username}")
+    @DeleteMapping("/delete-super-admin/{userId}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> deleteSuperAdmin(
-            @PathVariable String username,
+            @PathVariable Long userId,
             @RequestParam String confirmPassword) {
         try {
-            authService.deleteSuperAdmin(username, confirmPassword);
+            authService.deleteSuperAdmin(userId, confirmPassword);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             throw new ForbiddenException("Super admin deletion failed: " + e.getMessage() + " / Xóa super admin thất bại: " + e.getMessage());
         }
     }
 
-    @PutMapping("/update-roles/{username}")
+    @PutMapping("/update-roles/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> updateUserRoles(
-            @PathVariable String username,
+            @PathVariable Long userId,
             @RequestBody Set<String> roleNames) {
         try {
-            authService.updateUserRoles(username, roleNames);
+            authService.updateUserRoles(userId, roleNames);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             throw new ForbiddenException("Role update failed: " + e.getMessage() + " / Cập nhật vai trò thất bại: " + e.getMessage());
         }
     }
 
-    @PutMapping("/disable-user/{username}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<Void> disableUser(@PathVariable String username) {
+    @PutMapping("/disable-user/{userId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> disableUser(@PathVariable Long userId) {
         try {
-            authService.disableUser(username);
+            authService.disableUser(userId);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             throw new ForbiddenException("User disable failed: " + e.getMessage() + " / Vô hiệu hóa người dùng thất bại: " + e.getMessage());
         }
     }
 
-    @PutMapping("/enable-user/{username}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<Void> enableUser(@PathVariable String username) {
+    @PutMapping("/enable-user/{userId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> enableUser(@PathVariable Long userId) {
         try {
-            authService.enableUser(username);
+            authService.enableUser(userId);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             throw new ForbiddenException("User enable failed: " + e.getMessage() + " / Kích hoạt người dùng thất bại: " + e.getMessage());
