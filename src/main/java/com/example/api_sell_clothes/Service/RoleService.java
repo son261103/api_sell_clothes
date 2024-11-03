@@ -5,7 +5,7 @@ import com.example.api_sell_clothes.DTO.RolesDTO;
 import com.example.api_sell_clothes.Entity.Permissions;
 import com.example.api_sell_clothes.Entity.Roles;
 import com.example.api_sell_clothes.Entity.Users;
-import com.example.api_sell_clothes.Exception.ResourceNotFoundException;
+import com.example.api_sell_clothes.Exception.AuthException.ResourceNotFoundException;
 import com.example.api_sell_clothes.Mapper.PermissionMapper;
 import com.example.api_sell_clothes.Mapper.RoleMapper;
 import com.example.api_sell_clothes.Repository.PermissionRepository;

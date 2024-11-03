@@ -4,7 +4,7 @@ import com.example.api_sell_clothes.DTO.UsersDTO;
 import com.example.api_sell_clothes.DTO.Auth.*;
 import com.example.api_sell_clothes.Entity.Users;
 import com.example.api_sell_clothes.Entity.Roles;
-import com.example.api_sell_clothes.Exception.ResourceNotFoundException;
+import com.example.api_sell_clothes.Exception.AuthException.ResourceNotFoundException;
 import com.example.api_sell_clothes.Mapper.UserMapper;
 import com.example.api_sell_clothes.Repository.UserRepository;
 import com.example.api_sell_clothes.Utils.AuthValidationUtils;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

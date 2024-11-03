@@ -1,78 +1,52 @@
 package com.example.api_sell_clothes.Exception;
 
-import org.springframework.http.HttpStatus;
+import com.example.api_sell_clothes.Exception.Common.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                "Resource Not Found",
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    @Data
+    @AllArgsConstructor
+    public static class ErrorResponse {
+        private LocalDateTime timestamp;
+        private String message;
+        private String errorCode;
+        private String path;
     }
 
-    @ExceptionHandler(ForbiddenException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.FORBIDDEN.value(),
-                "Forbidden",
-                ex.getMessage()
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                ex.getMessage(),
+                ex.getErrorCode(),
+                request.getDescription(false)
         );
-        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorResponse, ex.getStatus());
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Validation Failed",
-                errors.toString()
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Invalid Request",
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    // Handle specific exceptions if needed
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex, WebRequest request) {
+        return handleBaseException(ex, request);
     }
 
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<ErrorResponse> handleAllUncaughtException(Exception ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                "An unexpected error occurred"
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                "An unexpected error occurred",
+                "ERROR.INTERNAL_SERVER",
+                request.getDescription(false)
         );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.internalServerError().body(errorResponse);
     }
 }

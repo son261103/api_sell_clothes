@@ -2,7 +2,7 @@ package com.example.api_sell_clothes.Controller;
 
 import com.example.api_sell_clothes.DTO.Auth.ChangePasswordRequest;
 import com.example.api_sell_clothes.DTO.UsersDTO;
-import com.example.api_sell_clothes.Exception.ResourceNotFoundException;
+import com.example.api_sell_clothes.Exception.AuthException.ResourceNotFoundException;
 import com.example.api_sell_clothes.Service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
