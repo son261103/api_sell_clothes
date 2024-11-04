@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/categories")
+@RequestMapping("/api/v1/admin/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 
@@ -62,7 +62,7 @@ public class CategoryController {
     }
 
     @PostMapping("/parent/{parentId}/child")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<CategoriesDTO> createChildCategory(
             @PathVariable Long parentId,
             @Valid @RequestBody CategoriesDTO categoryDTO) {
@@ -76,20 +76,23 @@ public class CategoryController {
         }
     }
 
-    @PutMapping("/child/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/parent/{parentId}/child/{childId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<CategoriesDTO> updateChildCategory(
-            @PathVariable Long id,
+            @PathVariable Long parentId,
+            @PathVariable Long childId,
             @Valid @RequestBody CategoriesDTO categoryDTO) {
         try {
-            return ResponseEntity.ok(categoryService.updateChildCategory(id, categoryDTO));
+            // Đảm bảo parentId trong DTO khớp với parentId trong URL
+            categoryDTO.setParentCategoryId(parentId);
+            return ResponseEntity.ok(categoryService.updateChildCategory(parentId, childId, categoryDTO));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Không thể cập nhật danh mục con: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/child/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> deleteChildCategory(@PathVariable Long id) {
         categoryService.deleteChildCategory(id);
         return ResponseEntity.noContent().build();

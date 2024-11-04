@@ -84,22 +84,33 @@ public class CategoryService {
         return createCategory(categoryDTO);
     }
 
-    public CategoriesDTO updateChildCategory(Long id, CategoriesDTO categoryDTO) {
+    public CategoriesDTO updateChildCategory(Long parentId, Long childId, CategoriesDTO categoryDTO) {
         log.info("Cập nhật danh mục con : {}", categoryDTO);
 
-        Categories child = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Danh mục con", "id", id));
+        // Kiểm tra danh mục con tồn tại
+        Categories child = categoryRepository.findById(childId)
+                .orElseThrow(() -> new NotFoundException("Danh mục con", "id", childId));
 
+        // Kiểm tra danh mục cha tồn tại
+        Categories parent = categoryRepository.findById(parentId)
+                .orElseThrow(() -> new NotFoundException("Danh mục cha", "id", parentId));
+
+        // Kiểm tra xem childId có phải là danh mục con không
         if (child.getParentCategoryId() == null) {
-            throw new InvalidDataException("ID không phải của danh mục con");
+            throw new InvalidDataException("ID " + childId + " không phải của danh mục con");
         }
 
-        Long currentParentId = child.getParentCategoryId();
-        if (!currentParentId.equals(categoryDTO.getParentCategoryId())) {
-            validateParentCategory(categoryDTO.getParentCategoryId());
+        // Kiểm tra xem parentId có matches với parent của child category không
+        if (!child.getParentCategoryId().equals(parentId)) {
+            throw new InvalidDataException("Danh mục con " + childId + " không thuộc danh mục cha " + parentId);
         }
 
-        return updateCategory(id, categoryDTO);
+        // Kiểm tra xem parentId có phải là danh mục cha (không có parent)
+        if (parent.getParentCategoryId() != null) {
+            throw new InvalidDataException("ID " + parentId + " không phải của danh mục cha");
+        }
+
+        return updateCategory(childId, categoryDTO);
     }
 
     public void deleteChildCategory(Long id) {
