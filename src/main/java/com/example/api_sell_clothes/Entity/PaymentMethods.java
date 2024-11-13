@@ -6,8 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
 
+=======
+>>>>>>> 0c41bd17ae39e748e50a1ad927fd7f5ab750a971
 @Data
 @Entity
 @Builder
@@ -23,9 +26,12 @@ public class PaymentMethods {
     @Column(name = "method_name")
     private String methodName;
 
+<<<<<<< HEAD
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+=======
+>>>>>>> 0c41bd17ae39e748e50a1ad927fd7f5ab750a971
 }

@@ -2,19 +2,26 @@ package com.example.api_sell_clothes.Mapper;
 
 import com.example.api_sell_clothes.DTO.PaymentMethodsDTO;
 import com.example.api_sell_clothes.Entity.PaymentMethods;
+<<<<<<< HEAD
 import org.springframework.stereotype.Component;
+=======
+>>>>>>> 0c41bd17ae39e748e50a1ad927fd7f5ab750a971
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+<<<<<<< HEAD
 
 @Component
+=======
+>>>>>>> 0c41bd17ae39e748e50a1ad927fd7f5ab750a971
 public class PaymentMethodMapper implements EntityMapper<PaymentMethods, PaymentMethodsDTO> {
     @Override
     public PaymentMethods toEntity(PaymentMethodsDTO dto) {
         if (dto == null) {
             return null;
         }
+<<<<<<< HEAD
         PaymentMethods paymentMethods = PaymentMethods.builder()
                 .paymentMethodId(dto.getPaymentMethodId())
                 .methodName(dto.getMethodName())
@@ -22,6 +29,12 @@ public class PaymentMethodMapper implements EntityMapper<PaymentMethods, Payment
                 .updatedAt(dto.getUpdatedAt())
                 .build();
         return paymentMethods;
+=======
+        return PaymentMethods.builder()
+                .paymentMethodId(dto.getPaymentMethodId())
+                .methodName(dto.getMethodName())
+                .build();
+>>>>>>> 0c41bd17ae39e748e50a1ad927fd7f5ab750a971
     }
 
     @Override
@@ -29,6 +42,7 @@ public class PaymentMethodMapper implements EntityMapper<PaymentMethods, Payment
         if (entity == null) {
             return null;
         }
+<<<<<<< HEAD
         PaymentMethodsDTO paymentMethodsDTO = PaymentMethodsDTO.builder()
                 .paymentMethodId(entity.getPaymentMethodId())
                 .methodName(entity.getMethodName())
@@ -36,6 +50,12 @@ public class PaymentMethodMapper implements EntityMapper<PaymentMethods, Payment
                 .updatedAt(entity.getUpdatedAt())
                 .build();
         return paymentMethodsDTO;
+=======
+        return PaymentMethodsDTO.builder()
+                .paymentMethodId(entity.getPaymentMethodId())
+                .methodName(entity.getMethodName())
+                .build();
+>>>>>>> 0c41bd17ae39e748e50a1ad927fd7f5ab750a971
     }
 
     @Override
