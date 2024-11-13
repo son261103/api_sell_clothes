@@ -1,0 +1,39 @@
+
+public class PaymentMethodsDTO {
+    private Long paymentMethodId;
+    private String methodName;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public Long getPaymentMethodId() {
+        return this.paymentMethodId;
+    }
+
+    public void setPaymentMethodId(Long paymentMethodId) {
+        this.paymentMethodId = paymentMethodId;
+    }
+
+    public String getMethodName() {
+        return this.methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+}
